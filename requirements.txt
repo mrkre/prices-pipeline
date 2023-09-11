@@ -1,0 +1,7 @@
+black==23.9.1
+click==8.1.7
+dlt==0.3.16
+duckdb==0.8.1
+requests==2.31.0
+pandas==2.1.0
+polars==0.19.2
