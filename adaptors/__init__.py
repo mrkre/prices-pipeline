@@ -1,1 +1,1 @@
-from eod_api_client import EODAPIClient
+from adaptors.eod_api_client import EODAPIClient

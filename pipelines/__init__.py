@@ -1,0 +1,1 @@
+from pipelines.us_stocks import update_us_stocks_pipeline
