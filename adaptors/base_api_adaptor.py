@@ -14,26 +14,38 @@ class BaseAPIAdaptor(ABC):
         """
         pass
 
+    @staticmethod
+    def _handle_response(response):
+        if response.status_code not in [200, 201]:
+            raise Exception(
+                f"Request failed with status {response.status_code}: {response.text}"
+            )
+
+        try:
+            return response.json()
+        except ValueError:
+            raise Exception("Failed to decode JSON from API response.")
+
     def get(self, endpoint, params=None):
         url = f"{self.base_url}/{endpoint}"
         headers = self.build_headers()
         response = requests.get(url, params=params, headers=headers)
-        return response.json()
+        return self._handle_response(response)
 
     def post(self, endpoint, payload=None):
         url = f"{self.base_url}/{endpoint}"
         headers = self.build_headers()
         response = requests.post(url, json=payload, headers=headers)
-        return response.json()
+        return self._handle_response(response)
 
     def put(self, endpoint, payload=None):
         url = f"{self.base_url}/{endpoint}"
         headers = self.build_headers()
         response = requests.put(url, json=payload, headers=headers)
-        return response.json()
+        return self._handle_response(response)
 
     def delete(self, endpoint):
         url = f"{self.base_url}/{endpoint}"
         headers = self.build_headers()
         response = requests.delete(url, headers=headers)
-        return response.json()
+        return self._handle_response(response)

@@ -22,7 +22,6 @@ def handle_us_stocks_update(sub_choice):
             sub_choice = sub_choice.lower()
 
             if sub_choice in [u.lower() for u in update_choices]:
-                click.echo("Updating latest US stocks data.")
                 break
             else:
                 click.echo("Invalid choice.")

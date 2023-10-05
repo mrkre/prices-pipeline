@@ -39,11 +39,7 @@ def eodhd(
     def us_stocks_latest(
         date_str: Optional[str] = None,
     ) -> Iterator[TDataItem]:
-        exchange = "US"
-
-        print(f"Fetching {exchange} stocks for {date_str}...")
-
-        yield get_eod_bulk(client=api_client, exchange=exchange, date_str=date_str)
+        yield get_eod_bulk(client=api_client, exchange="US", date_str=date_str)
 
     @dlt.resource(
         name="us_stocks_historical",
