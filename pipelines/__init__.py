@@ -1,1 +1,1 @@
-from pipelines.us_stocks import update_us_stocks_pipeline
+from pipelines.eod_source import us_stocks_pipeline, eodhd
