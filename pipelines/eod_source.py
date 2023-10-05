@@ -27,9 +27,9 @@ def get_latest_date():
 
 @dlt.source(name="eodhd")
 def eodhd(
-    api_key: str = dlt.secrets.value,
+    eodhd_api_key: str = dlt.secrets.value,
 ) -> Sequence[DltResource]:
-    api_client = EODAPIClient(api_key=api_key)
+    api_client = EODAPIClient(api_key=eodhd_api_key)
 
     @dlt.resource(
         name="us_stocks_latest",

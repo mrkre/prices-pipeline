@@ -29,19 +29,19 @@ def handle_us_stocks_update(sub_choice):
     if sub_choice == "latest":
         click.echo("Updating latest US stocks data.")
 
-        info = us_stocks_pipeline.run(eodhd("us_stocks_latest"))
+        info = us_stocks_pipeline.run(eodhd())
 
         click.echo(info)
     elif sub_choice == "historical":
         start_date, end_date = get_dates()
 
         info = us_stocks_pipeline.run(
-            eodhd(
+            eodhd.with_resources(
                 "us_stocks_historical",
                 date=dlt.sources.incremental(
                     initial_value=start_date, end_value=end_date
                 ),
-            )
+            ),
         )
         click.echo(info)
 
