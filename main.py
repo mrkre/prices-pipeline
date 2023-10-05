@@ -1,6 +1,8 @@
 import click
+import dlt
 
-from pipelines import update_us_stocks_pipeline
+from pipelines.eod_source import us_stocks_pipeline, eodhd
+from pipelines.helpers import get_dates
 
 
 def handle_us_stocks_update(sub_choice):
@@ -27,9 +29,22 @@ def handle_us_stocks_update(sub_choice):
 
     if sub_choice == "latest":
         click.echo("Updating latest US stocks data.")
-        update_us_stocks_pipeline()
+
+        info = us_stocks_pipeline.run(eodhd("us_stocks_latest"))
+
+        click.echo(info)
     elif sub_choice == "historical":
-        click.echo("Not implemented.")
+        start_date, end_date = get_dates()
+
+        info = us_stocks_pipeline.run(
+            eodhd(
+                "us_stocks_historical",
+                date=dlt.sources.incremental(
+                    initial_value=start_date, end_value=end_date
+                ),
+            )
+        )
+        click.echo(info)
 
 
 def handle_data_update(choice, sub_choice):

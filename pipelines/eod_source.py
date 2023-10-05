@@ -1,38 +1,66 @@
 import dlt
 
+from datetime import datetime
+from dlt.common.typing import TDataItem
+from dlt.extract.source import DltResource
+from typing import Iterator, Optional, Sequence
+
 from adaptors import EODAPIClient
-from typing import Optional
+from .helpers import get_eod_bulk
+
+us_stocks_pipeline = dlt.pipeline(
+    pipeline_name="eodhd_pipeline",
+    destination="duckdb",
+    dataset_name="us_stocks",
+    loader_file_format="parquet",
+)
+
+
+primary_key = ["code", "exchange_short_name", "date"]
+
+
+def get_latest_date():
+    end_date = datetime.now().date()
+
+    return end_date.strftime("%Y-%m-%d")
 
 
 @dlt.source(name="eodhd")
-def eod_source(api_key: str = dlt.secrets.value, date: Optional[str] = None):
-    return [
-        us_stocks(api_key=api_key, date=date),
-    ]
-
-
-@dlt.resource(
-    name="us_stocks",
-    primary_key=["code", "exchange_short_name", "date"],
-    write_disposition="merge",
-)
-def us_stocks(
+def eodhd(
     api_key: str = dlt.secrets.value,
-    date: Optional[str] = None,
-):
+) -> Sequence[DltResource]:
     api_client = EODAPIClient(api_key=api_key)
 
-    exchange = "US"
+    @dlt.resource(
+        name="us_stocks_latest",
+        primary_key=["code", "exchange_short_name", "date"],
+        write_disposition="merge",
+    )
+    def us_stocks_latest(
+        date_str: Optional[str] = None,
+    ) -> Iterator[TDataItem]:
+        exchange = "US"
 
-    print(f"Fetching {exchange} stocks for {date}...")
+        print(f"Fetching {exchange} stocks for {date_str}...")
 
-    response = api_client.get_eod_bulk_last_day(exchange=exchange, date=date)
+        yield get_eod_bulk(client=api_client, exchange=exchange, date_str=date_str)
 
-    if response.status_code == 200:
-        print(f"Fetched {exchange} stocks for {date}")
+    @dlt.resource(
+        name="us_stocks_historical",
+        primary_key=["code", "exchange_short_name", "date"],
+        write_disposition="merge",
+    )
+    def us_stocks_historical(
+        date=dlt.sources.incremental(
+            "data", initial_value="2023-10-01", last_value_func=get_latest_date
+        ),
+    ) -> Iterator[TDataItem]:
+        for data in get_eod_bulk(
+            client=api_client, exchange="US", date_str=date.start_value
+        ):
+            yield data
 
-        yield from response.json()
-    else:
-        raise Exception(
-            f"Error fetching {exchange} stocks for {date} - {response.status_code} - {response.text}"
-        )
+    return (
+        us_stocks_latest,
+        us_stocks_historical,
+    )
