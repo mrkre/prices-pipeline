@@ -1,26 +1,22 @@
 import click
-from datetime import datetime, timedelta
+from dlt.common.time import ensure_pendulum_date
 from dlt.common.typing import TDataItem
+from pendulum import Date
 from typing import Iterable, Tuple
 
 
-def get_eod_bulk(client, exchange, date_str: str = None) -> Iterable[TDataItem]:
-    date = None
-
-    if date_str:
-        date = validate_date(date_str)
-
+def get_eod_bulk(client, exchange, date: str = None) -> Iterable[TDataItem]:
     yield client.get_eod_bulk_last_day(exchange=exchange, date=date)
 
 
-def get_dates() -> Tuple[datetime.date, datetime.date]:
+def get_dates() -> Tuple[Date, Date]:
     start_date_str = click.prompt(
         "What date would you like to start from? (YYYY-MM-DD)",
         type=str,
         show_default=True,
     ).strip()
 
-    start_date = validate_date(start_date_str)
+    start_date = ensure_pendulum_date(start_date_str)
 
     while True:
         end_date_str = click.prompt(
@@ -28,11 +24,13 @@ def get_dates() -> Tuple[datetime.date, datetime.date]:
             default="",
             show_default=False,
         ).strip()
+
         if not end_date_str:
-            end_date = datetime.today().date() - timedelta(days=1)
+            end_date = Date.today().subtract(days=1)
             break
         else:
-            end_date = validate_date(end_date_str)
+            end_date = ensure_pendulum_date(end_date_str)
+
             if end_date is None:
                 click.echo("Invalid end date format. Try again.")
             elif end_date <= start_date:
@@ -41,11 +39,3 @@ def get_dates() -> Tuple[datetime.date, datetime.date]:
                 break
 
     return start_date, end_date
-
-
-def validate_date(date_str: str) -> datetime.date:
-    """Validates the date in YYYY-MM-DD format."""
-    try:
-        return datetime.strptime(date_str, "%Y-%m-%d").date()
-    except ValueError:
-        raise ValueError("Incorrect data format, should be YYYY-MM-DD")

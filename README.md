@@ -12,3 +12,13 @@ Secrets are stored in .dlt/secrets.toml
 [sources.eod_source]
 eodhd_api_key = "your_eodhd_api_key"
 ```
+
+### Duckdb Configuration
+
+This can also be configured in the secrets.toml file.
+
+```toml
+[destination.duckdb]
+credentials = "duckdb://var/local/duckdb.db"
+```
+

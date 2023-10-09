@@ -1,5 +1,4 @@
 import click
-import dlt
 
 from pipelines.eod_source import us_stocks_pipeline, eodhd
 from pipelines.helpers import get_dates
@@ -8,50 +7,54 @@ from pipelines.helpers import get_dates
 def handle_us_stocks_update(sub_choice):
     click.echo("Choose update option:")
 
-    update_choices = ["Latest", "Historical"]
+    update_choices = ["1", "2"]
 
     if not sub_choice:
         while True:
             sub_choice = click.prompt(
-                "What data would you like to update?",
+                "What data would you like to update? ([1] Latest [2] Historical)",
                 type=click.Choice(update_choices, case_sensitive=False),
-                show_choices=True,
-                default="Latest",
+                show_choices=False,
+                show_default=False,
+                default="1",
             )
 
-            sub_choice = sub_choice.lower()
-
-            if sub_choice in [u.lower() for u in update_choices]:
+            if sub_choice in update_choices:
                 break
             else:
                 click.echo("Invalid choice.")
 
-    if sub_choice == "latest":
+    if sub_choice == "1":
         click.echo("Updating latest US stocks data.")
 
-        info = us_stocks_pipeline.run(eodhd())
+        info = us_stocks_pipeline.run(
+            eodhd(),
+            table_name="us_stocks",
+        )
 
         click.echo(info)
-    elif sub_choice == "historical":
+    elif sub_choice == "2":
         start_date, end_date = get_dates()
 
+        click.echo(
+            f"Updating historical US stocks data from {start_date} to {end_date}."
+        )
+
+        data = eodhd(initial_start_date=start_date, end_date=end_date).with_resources(
+            "us_stocks_historical"
+        )
+
         info = us_stocks_pipeline.run(
-            eodhd.with_resources(
-                "us_stocks_historical",
-                date=dlt.sources.incremental(
-                    initial_value=start_date, end_value=end_date
-                ),
-            ),
+            data,
+            table_name="us_stocks",
         )
         click.echo(info)
 
 
 def handle_data_update(choice, sub_choice):
-    choice = choice.lower()
-
-    if choice == "us stocks":
+    if choice == "1":
         handle_us_stocks_update(sub_choice)
-    elif choice == "market":
+    elif choice == "2":
         click.echo("Not implemented.")
 
 
@@ -74,10 +77,11 @@ def main(choice, sub_choice):
 
     if not choice:
         choice = click.prompt(
-            "What data would you like to update?",
-            type=click.Choice(["US Stocks", "Market"], case_sensitive=False),
-            show_choices=True,
-            default="US Stocks",
+            "What data would you like to update? ([1] US Stocks [2] Market)",
+            type=click.Choice(["1", "2"], case_sensitive=False),
+            show_choices=False,
+            show_default=False,
+            default="1",
         )
     handle_data_update(choice, sub_choice)
 
