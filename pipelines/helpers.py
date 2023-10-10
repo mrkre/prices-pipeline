@@ -1,8 +1,10 @@
 import click
+import holidays
+
 from dlt.common.time import ensure_pendulum_date
 from dlt.common.typing import TDataItem
 from pendulum import Date
-from typing import Iterable, Tuple
+from typing import Iterable, List, Tuple
 
 
 def get_eod_bulk(client, exchange, date: str = None) -> Iterable[TDataItem]:
@@ -39,3 +41,27 @@ def get_dates() -> Tuple[Date, Date]:
                 break
 
     return start_date, end_date
+
+
+def generate_dates(
+    start_date: Date, end_date: Date, exclude_holidays: str = None
+) -> List[Date]:
+    holidays_list = []
+
+    if exclude_holidays:
+        if exclude_holidays in ["NYSE", "ECB"]:
+            holidays_list = holidays.financial_holidays(exclude_holidays)
+        else:
+            holidays_list = holidays.country_holidays(exclude_holidays)
+
+    dates = []
+
+    current_date = start_date
+
+    while current_date <= end_date:
+        if current_date not in holidays_list and current_date.isoweekday() < 6:
+            dates.append(current_date)
+
+        current_date = current_date.add(days=1)
+
+    return dates

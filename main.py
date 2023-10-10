@@ -1,7 +1,7 @@
 import click
 
-from pipelines.eod_source import us_stocks_pipeline, eodhd
-from pipelines.helpers import get_dates
+from pipelines.eod_source import market_data_pipeline, eodhd
+from pipelines.helpers import get_dates, generate_dates
 
 
 def handle_us_stocks_update(sub_choice):
@@ -27,8 +27,8 @@ def handle_us_stocks_update(sub_choice):
     if sub_choice == "1":
         click.echo("Updating latest US stocks data.")
 
-        info = us_stocks_pipeline.run(
-            eodhd(),
+        info = market_data_pipeline.run(
+            eodhd().with_resources("us_stocks"),
             table_name="us_stocks",
         )
 
@@ -40,15 +40,19 @@ def handle_us_stocks_update(sub_choice):
             f"Updating historical US stocks data from {start_date} to {end_date}."
         )
 
-        data = eodhd(initial_start_date=start_date, end_date=end_date).with_resources(
-            "us_stocks_historical"
-        )
+        dates = generate_dates(start_date, end_date, exclude_holidays="NYSE")
 
-        info = us_stocks_pipeline.run(
-            data,
-            table_name="us_stocks",
-        )
-        click.echo(info)
+        for date in dates:
+            click.echo(f"Updating data for {date}.")
+
+            data = eodhd(initial_start_date=date).with_resources("us_stocks")
+
+            info = market_data_pipeline.run(
+                data,
+                table_name="us_stocks",
+            )
+
+            click.echo(info)
 
 
 def handle_data_update(choice, sub_choice):
