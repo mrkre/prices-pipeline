@@ -29,28 +29,27 @@ def handle_us_stocks_update(sub_choice):
 
         info = market_data_pipeline.run(
             eodhd().with_resources("us_stocks"),
-            table_name="us_stocks",
         )
 
         click.echo(info)
     elif sub_choice == "2":
         start_date, end_date = get_dates()
 
+        dates = generate_dates(start_date, end_date)
+
         click.echo(
             f"Updating historical US stocks data from {start_date} to {end_date}."
         )
 
-        dates = generate_dates(start_date, end_date, exclude_holidays="NYSE")
+        for idx, date in enumerate(dates):
+            initial_start_date = date
+            next_date = dates[idx + 1] if idx < len(dates) - 1 else None
 
-        for date in dates:
-            click.echo(f"Updating data for {date}.")
+            data = eodhd(
+                initial_start_date=initial_start_date, end_date=next_date
+            ).with_resources("us_stocks")
 
-            data = eodhd(initial_start_date=date).with_resources("us_stocks")
-
-            info = market_data_pipeline.run(
-                data,
-                table_name="us_stocks",
-            )
+            info = market_data_pipeline.run(data)
 
             click.echo(info)
 
