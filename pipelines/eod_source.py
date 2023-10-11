@@ -51,10 +51,10 @@ def eodhd(
             "date", initial_value=start_date_str, end_value=end_date_str
         )
     ) -> Iterator[TDataItem]:
-        print(f"Getting bulk data for US on {date.start_value}.")
+        print(f"Getting bulk data for US on {date.last_value}.")
 
         for data in get_eod_bulk(
-            client=api_client, exchange="US", date=date.start_value
+            client=api_client, exchange="US", date=date.last_value
         ):
             yield data
 
@@ -69,10 +69,10 @@ def eodhd(
             "date", initial_value=start_date_str, end_value=end_date_str
         )
     ) -> Iterator[TDataItem]:
-        print(f"Getting bulk data for FOREX on {date.start_value}.")
+        print(f"Getting bulk data for FOREX on {date.last_value}.")
 
         for data in get_eod_bulk(
-            client=api_client, exchange="FOREX", date=date.start_value
+            client=api_client, exchange="FOREX", date=date.last_value
         ):
             yield data
 
