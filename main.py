@@ -1,7 +1,7 @@
 import click
 
 from pipelines.eod_source import market_data_pipeline, eodhd
-from pipelines.helpers import get_dates, generate_dates
+from pipelines.helpers import get_yesterday, get_dates, generate_dates
 
 
 def handle_us_stocks_update(sub_choice):
@@ -27,9 +27,11 @@ def handle_us_stocks_update(sub_choice):
     if sub_choice == "1":
         click.echo("Updating latest US stocks data.")
 
-        info = market_data_pipeline.run(
-            eodhd().with_resources("us_stocks"),
-        )
+        start_date = get_yesterday()
+
+        data = eodhd(initial_start_date=start_date).with_resources("us_stocks")
+
+        info = market_data_pipeline.run(data)
 
         click.echo(info)
     elif sub_choice == "2":

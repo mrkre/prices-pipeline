@@ -11,6 +11,16 @@ def get_eod_bulk(client, exchange, date: str = None) -> Iterable[TDataItem]:
     yield client.get_eod_bulk_last_day(exchange=exchange, date=date)
 
 
+def get_today():
+    end_date = Date.today()
+
+    return end_date
+
+
+def get_yesterday() -> Date:
+    return Date.today().subtract(days=1)
+
+
 def get_dates() -> Tuple[Date, Date]:
     start_date_str = click.prompt(
         "What date would you like to start from? (YYYY-MM-DD)",
@@ -28,7 +38,7 @@ def get_dates() -> Tuple[Date, Date]:
         ).strip()
 
         if not end_date_str:
-            end_date = Date.today().subtract(days=1)
+            end_date = get_today()
             break
         else:
             end_date = ensure_pendulum_date(end_date_str)
